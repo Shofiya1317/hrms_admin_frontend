@@ -6,32 +6,18 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { GoUpload } from 'react-icons/go';
 import AddorEditAccount from '../AddorEditAccount/AddorEditAccount';
 import AddorEditUser from '../AddorEditUser/AddorEditUser';
 import Button from '../Button/Button';
-import FileUploader from '../MasterList/FileUploader/FileUploader';
-import AddorEditIndicators from '../MasterList/Indicators/AddorEditIndicators';
-import AddorEditIndusties from '../MasterList/Industries/AddorEditIndusties';
-import AddorEditModules from '../MasterList/Modules/AddorEditModules';
-import AddOrEditQuestion from '../MasterList/Question/AddOrEditQuestion';
-import AddorEditSector from '../MasterList/Sector/AddorEditSector';
-import AddorEditStandards from '../MasterList/Standards/AddorEditStandards';
-import AddOrEditThemesIndustries from '../MasterList/ThemesIndustries/AddOrEditThemesIndustries';
+import AddorEditDepartments from '../MasterList/Departments/AddorEditDepartments';
+import AddorEditIndustry from '../MasterList/Industry/AddorEditIndustry';
+import AddorEditEmployeeType from '../MasterList/EmployeeType/AddorEditEmployeeType';
+import AddorEditLeaveType from '../MasterList/LeaveType/AddorEditLeaveType';
+import AddorEditWorkShift from '../MasterList/WorkShift/AddorEditWorkShift';
+import AddorEditWorkSchedule from '../MasterList/workSchedule/AddorEditWorkSchedule';
 import { useModal } from '../Modal/Context';
-import AddOrEditFileRepo from '../MasterList/FileRepo/AddOrEditFileRepo';
-// import AddorEditSubIndicators from '../MasterList/SubIndicators/AddorEditSubIndicators';
-// import AddorEditDepartment from '../MasterList/Department/AddorEditDepartment';
-// import AddOrEditWidgets from '../MasterList/Widgets/AddOrEditWidgets';
-// import AddOrEditDashboardWidgets from '../DashboardWidgets/AddOrEditDashboardWidgets';
 
-export default function InviteButton({
-  btnName,
-  isUpload = false,
-}: {
-  btnName: string;
-  isUpload?: boolean;
-}) {
+export default function InviteButton({ btnName }: { btnName: string }) {
   const router = useRouter();
   const hideModal = useModal({});
   const closeModal = () => {
@@ -51,26 +37,20 @@ export default function InviteButton({
         );
       case 'Account':
         return <AddorEditAccount onClose={closeModal} actionType="Invite" />;
-      case 'Industries':
-        return <AddorEditIndusties actionType="Create" onClose={closeModal} />;
-      case 'Sectors':
-        return <AddorEditSector actionType="Create" onClose={closeModal} />;
-      case 'Standards':
-        return <AddorEditStandards actionType="Create" onClose={closeModal} />;
-      case 'Themes':
-        return <AddorEditModules actionType="Create" onClose={closeModal} />;
-      case 'Themes Industries':
-        return (
-          <AddOrEditThemesIndustries actionType="Create" onClose={closeModal} />
-        );
-      case 'Indicators':
-        return <AddorEditIndicators actionType="Create" onClose={closeModal} />;
-      case 'Questions':
-        return <AddOrEditQuestion actionType="Create" onClose={closeModal} />;
-      case 'File Repo':
-        return <AddOrEditFileRepo actionType="Create" onClose={closeModal} />;
+      case 'Departments':
+        return <AddorEditDepartments actionType="Create" onClose={closeModal} />;
+      case 'Industry':
+        return <AddorEditIndustry actionType="Create" onClose={closeModal} />;
+      case 'Employee Type':
+        return <AddorEditEmployeeType actionType="Create" onClose={closeModal} />;
+      case 'Leave Type':
+        return <AddorEditLeaveType actionType="Create" onClose={closeModal} />;
+      case 'Work Shift':
+        return <AddorEditWorkShift actionType="Create" onClose={closeModal} />;
+      case 'Work Schedule':
+        return <AddorEditWorkSchedule actionType="Create" onClose={closeModal} />;
       default:
-        return <div>Access no provided</div>;
+        return <div>Access not provided</div>;
     }
   }
 
@@ -86,32 +66,18 @@ export default function InviteButton({
 
   const modal = useModal({
     style: {
-      size: isUpload || btnName === 'Questions' ? 'lg' : 'sm',
-      title: isUpload ? undefined : `${buttonName()} ${btnName}`,
-      onClose: isUpload ? () => closeModal() : undefined,
+      size: 'sm',
+      title: `${buttonName()} ${btnName}`,
     },
-    content: isUpload ? (
-      <FileUploader btnName={btnName} onClose={closeModal} />
-    ) : (
-      RenderComponents()
-    ),
+    content: RenderComponents(),
   });
 
   return (
     <Button
-      className={`mb-2 btn-sm px-sm-4 ${isUpload ? 'Cancelbtn' : 'savebtn'}`}
+      className="mb-2 btn-sm px-sm-4 savebtn"
       onClick={() => modal()}
     >
-      {isUpload ? (
-        <div>
-          <span className="me-2">
-            <GoUpload />
-          </span>
-          <span>{`Upload ${btnName}`}</span>
-        </div>
-      ) : (
-        `+ ${buttonName()} ${btnName}`
-      )}
+      {`+ ${buttonName()} ${btnName}`}
     </Button>
   );
 }

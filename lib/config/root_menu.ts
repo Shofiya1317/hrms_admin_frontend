@@ -9,7 +9,7 @@ export const rootMenu = [
   },
   {
     label: 'Masters',
-    path: '/masters/sectors',
+    path: '/masters/industry',
   },
 ];
 
@@ -29,16 +29,12 @@ export const profileMenu = [
 ];
 
 export const Mastersmenu = [
-  'Sectors',
-  'Industries',
-  'Themes',
-  'Themes Industries',
-  'Indicators',
-  'Questions',
-  'Standards',
-  'File Repo',
-  // 'Roles',
-  // 'Report Builder'
+  'Industry',
+  'Departments',
+  'Employee Type',
+  'Leave Type',
+  'Work Shift',
+  'Work Schedule',
 ];
 
 export const QUESTION_TYPES = [

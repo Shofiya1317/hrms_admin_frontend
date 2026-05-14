@@ -4,11 +4,12 @@ import {
 import { ISectorFilter } from '../interface/ISector.interface';
 import { Params } from '../utils';
 
-export const create = (params: { name: string }) => post('/departments', params);
+export const create = (params: { name: string; description?: string; }) => post('/departments', params);
 
 export const update = (
   params: {
     name: string;
+    description?: string;
   },
   id: string,
 ) => put(`/departments/${id}`, params);

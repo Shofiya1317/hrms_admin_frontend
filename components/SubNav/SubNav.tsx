@@ -33,7 +33,7 @@ export default function SubNav({ activePage }: { activePage: string }) {
         style={{ listStyle: 'none', position: 'relative' }}
       >
         {Mastersmenu.map((item) => {
-          const slug = item.toLowerCase().replace(' ', '_');
+          const slug = item.toLowerCase().replace(/ /g, '_');
           const isActive = activeMain === slug;
 
           return (

@@ -2,7 +2,7 @@ import Button from '@/components/Button/Button';
 import { FormikField } from '@/components/FormikField/FormikField';
 import { ActionType } from '@/components/types';
 import { IThemes } from '@/lib/interface/IThemes.interface';
-import { ThemeService } from '@/lib/service';
+// import { ThemeService } from '@/lib/service'
 import { btnName } from '@/lib/utils';
 import { Formik, FormikHelpers } from 'formik';
 import { useRouter } from 'next/navigation';
@@ -11,8 +11,8 @@ import toast from 'react-hot-toast';
 import { object, string } from 'yup';
 
 interface IFields {
-  theme_name: string;
-  theme_description: string;
+  employment_type: string;
+  description: string;
   id: string;
 }
 
@@ -27,17 +27,17 @@ export default function AddorEditEmployeeType({
 }) {
   const router = useRouter();
   const initialValues = {
-    theme_name: currentModule?.name ?? '',
-    theme_description: currentModule?.description ?? '',
+    employment_type: currentModule?.name ?? '',
+    description: currentModule?.description ?? '',
     id: currentModule?.id ?? '',
   };
 
   const validationSchema = object({
-    theme_name: string()
+    employment_type: string()
       .max(150, 'Module Name must be between 3 and 150 characters')
       .min(3, 'Module Name must be between 3 and 150 characters')
       .required('Module Name is required'),
-    theme_description: string()
+    description: string()
       .max(5000, 'Module description must be between 3 and 5000 characters')
       .min(3, 'Module description must be between 3 and 5000 characters')
       .notRequired(),
@@ -76,19 +76,19 @@ export default function AddorEditEmployeeType({
     await validateForm(values);
     let res;
     const params = {
-      name: values.theme_name,
-      description: values.theme_description,
+      name: values.employment_type,
+      description: values.description,
     };
 
     switch (actionType) {
-      case 'Create':
-        res = await ThemeService.create(params);
-        toastAndCloseModal(res);
-        return;
-      case 'Edit':
-        res = await ThemeService.update(params, values?.id || '');
-        toastAndCloseModal(res);
-        return;
+      // case 'Create':
+      //   res = await ThemeService.create(params);
+      //   toastAndCloseModal(res);
+      //   return;
+      // case 'Edit':
+      //   res = await ThemeService.update(params, values?.id || '');
+      //   toastAndCloseModal(res);
+      //   return;
       default:
         // eslint-disable-next-line consistent-return
         return null;
@@ -110,13 +110,13 @@ export default function AddorEditEmployeeType({
           <Row>
             <Col className="mt-3">
               <FormikField
-                name="theme_name"
+                name="employment_type"
                 type="text"
                 validationSchema={validationSchema}
-                label="Theme Name"
+                label="Employment Type"
                 errors={errors as Record<string, string>}
                 autoFocus
-                placeholder="Theme Name"
+                placeholder="Employment Type"
               />
             </Col>
           </Row>
@@ -124,7 +124,7 @@ export default function AddorEditEmployeeType({
             <Col className="mt-3">
               <FormikField
                 as="textarea"
-                name="theme_description"
+                name="description"
                 type="text"
                 validationSchema={validationSchema}
                 label="Description"

@@ -2,17 +2,20 @@ import Button from '@/components/Button/Button';
 import { FormikField } from '@/components/FormikField/FormikField';
 import { ActionType } from '@/components/types';
 import { IThemes } from '@/lib/interface/IThemes.interface';
-import { ThemeService } from '@/lib/service';
+// import { ThemeService } from '@/lib/service';
 import { btnName } from '@/lib/utils';
 import { Formik, FormikHelpers } from 'formik';
 import { useRouter } from 'next/navigation';
 import { Col, Row, Stack } from 'react-bootstrap';
 import toast from 'react-hot-toast';
-import { object, string } from 'yup';
+import { number, object, string } from 'yup';
 
 interface IFields {
-  theme_name: string;
-  theme_description: string;
+  name: string;
+  description: string;
+  start_time: string;
+  end_time: string;
+  working_hours: number | '';
   id: string;
 }
 
@@ -27,20 +30,29 @@ export default function AddorEditModules({
 }) {
   const router = useRouter();
   const initialValues = {
-    theme_name: currentModule?.name ?? '',
-    theme_description: currentModule?.description ?? '',
+    name: currentModule?.name ?? '',
+    description: currentModule?.description ?? '',
+    start_time: '',
+    end_time: '',
+    working_hours: '' as number | '',
     id: currentModule?.id ?? '',
   };
 
   const validationSchema = object({
-    theme_name: string()
-      .max(150, 'Module Name must be between 3 and 150 characters')
-      .min(3, 'Module Name must be between 3 and 150 characters')
-      .required('Module Name is required'),
-    theme_description: string()
-      .max(5000, 'Module description must be between 3 and 5000 characters')
-      .min(3, 'Module description must be between 3 and 5000 characters')
+    name: string()
+      .max(150, 'Name must be between 3 and 150 characters')
+      .min(3, 'Name must be between 3 and 150 characters')
+      .required('Name is required'),
+    description: string()
+      .max(5000, 'Description must be between 3 and 5000 characters')
+      .min(3, 'Description must be between 3 and 5000 characters')
       .notRequired(),
+    start_time: string().required('Start Time is required'),
+    end_time: string().required('End Time is required'),
+    working_hours: number()
+      .min(1, 'Working hours must be at least 1')
+      .max(24, 'Working hours cannot exceed 24')
+      .required('Working Hours is required'),
   });
 
   const toastMessage = () => {
@@ -76,19 +88,22 @@ export default function AddorEditModules({
     await validateForm(values);
     let res;
     const params = {
-      name: values.theme_name,
-      description: values.theme_description,
+      name: values.name,
+      description: values.description,
+      start_time: values.start_time,
+      end_time: values.end_time,
+      working_hours: values.working_hours,
     };
 
     switch (actionType) {
-      case 'Create':
-        res = await ThemeService.create(params);
-        toastAndCloseModal(res);
-        return;
-      case 'Edit':
-        res = await ThemeService.update(params, values?.id || '');
-        toastAndCloseModal(res);
-        return;
+      // case 'Create':
+      //   res = await ThemeService.create(params);
+      //   toastAndCloseModal(res);
+      //   return;
+      // case 'Edit':
+      //   res = await ThemeService.update(params, values?.id || '');
+      //   toastAndCloseModal(res);
+      //   return;
       default:
         // eslint-disable-next-line consistent-return
         return null;
@@ -110,13 +125,13 @@ export default function AddorEditModules({
           <Row>
             <Col className="mt-3">
               <FormikField
-                name="theme_name"
+                name="name"
                 type="text"
                 validationSchema={validationSchema}
-                label="Theme Name"
+                label="Name"
                 errors={errors as Record<string, string>}
                 autoFocus
-                placeholder="Theme Name"
+                placeholder="e.g. Morning Shift"
               />
             </Col>
           </Row>
@@ -124,13 +139,44 @@ export default function AddorEditModules({
             <Col className="mt-3">
               <FormikField
                 as="textarea"
-                name="theme_description"
+                name="description"
                 type="text"
                 validationSchema={validationSchema}
                 label="Description"
                 errors={errors as Record<string, string>}
-                autoFocus
-                placeholder="Enter your Description"
+                placeholder="Enter Description"
+              />
+            </Col>
+          </Row>
+          <Row>
+            <Col className="mt-3">
+              <FormikField
+                name="start_time"
+                type="time"
+                validationSchema={validationSchema}
+                label="Start Time"
+                errors={errors as Record<string, string>}
+              />
+            </Col>
+            <Col className="mt-3">
+              <FormikField
+                name="end_time"
+                type="time"
+                validationSchema={validationSchema}
+                label="End Time"
+                errors={errors as Record<string, string>}
+              />
+            </Col>
+          </Row>
+          <Row>
+            <Col className="mt-3">
+              <FormikField
+                name="working_hours"
+                type="number"
+                validationSchema={validationSchema}
+                label="Working Hours"
+                errors={errors as Record<string, string>}
+                placeholder="e.g. 8"
               />
             </Col>
           </Row>

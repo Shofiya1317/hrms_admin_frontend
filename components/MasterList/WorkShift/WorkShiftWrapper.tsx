@@ -7,9 +7,11 @@ function ModulesWrapper({ children }: { children: ReactNode }) {
         <table className="table ">
           <thead style={{ background: '#305B61', color: '#fefefe' }}>
             <tr>
-              <th className=" fw-semibold ">Theme Name</th>
-              <th className=" fw-semibold">Updated-At</th>
-              <th className=" fw-semibold">Status</th>
+              <th className="fw-semibold">Shift Name</th>
+              <th className="fw-semibold">Start Time</th>
+              <th className="fw-semibold">End Time</th>
+              <th className="fw-semibold">Working Hours</th>
+              <th className="fw-semibold">Status</th>
               <th className="text-center fw-semibold">Action</th>
             </tr>
           </thead>

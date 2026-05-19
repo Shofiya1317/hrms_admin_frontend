@@ -2,8 +2,7 @@ import Button from '@/components/Button/Button';
 import { FormikField } from '@/components/FormikField/FormikField';
 import { ActionType } from '@/components/types';
 import { IThemes } from '@/lib/interface/IThemes.interface';
-// import { LeaveTypeService } from '@/lib/service';
-import { btnName } from '@/lib/utils';
+import { LeaveTypeService } from '@/lib/service';import { btnName } from '@/lib/utils';
 import { Formik, FormikHelpers } from 'formik';
 import { useRouter } from 'next/navigation';
 import { Col, Form, Row, Stack } from 'react-bootstrap';
@@ -44,13 +43,13 @@ export default function AddorEditLeaveType({
   const initialValues: IFields = {
     name: currentModule?.name ?? '',
     description: currentModule?.description ?? '',
-    is_paid: false,
-    is_encashable: false,
-    requires_document: false,
-    applicable_gender: 'all',
-    is_system_type: false,
-    max_consecutive_days: '',
-    notice_days_required: '',
+    is_paid: (currentModule as any)?.is_paid ?? false,
+    is_encashable: (currentModule as any)?.is_encashable ?? false,
+    requires_document: (currentModule as any)?.requires_document ?? false,
+    applicable_gender: (currentModule as any)?.applicable_gender ?? 'all',
+    is_system_type: (currentModule as any)?.is_system_type ?? false,
+    max_consecutive_days: (currentModule as any)?.max_consecutive_days ?? '',
+    notice_days_required: (currentModule as any)?.notice_days_required ?? '',
     id: currentModule?.id ?? '',
   };
 
@@ -87,18 +86,14 @@ export default function AddorEditLeaveType({
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toastAndCloseModal = (res: any) => {
-    const { success, error } = res?.data as {
-      success: boolean;
-      error: string[];
-    };
-    if (success) {
+    if (res?.status === 200 || res?.status === 201 || res?.data?.success) {
       toast.success(toastMessage());
       onClose?.();
       router.refresh();
     } else {
-      toast.error(error[0]);
+      const err = res?.data?.error || res?.data?.message || 'Something went wrong';
+      toast.error(Array.isArray(err) ? err[0] : err);
     }
   };
 
@@ -121,14 +116,14 @@ export default function AddorEditLeaveType({
     };
 
     switch (actionType) {
-      // case 'Create':
-      //   res = await LeaveTypeService.create(params);
-      //   toastAndCloseModal(res);
-      //   return;
-      // case 'Edit':
-      //   res = await LeaveTypeService.update(params, values?.id || '');
-      //   toastAndCloseModal(res);
-      //   return;
+      case 'Create':
+        res = await LeaveTypeService.create(params);
+        toastAndCloseModal(res);
+        return;
+      case 'Edit':
+        res = await LeaveTypeService.update(params, values?.id || '');
+        toastAndCloseModal(res);
+        return;
       default:
         // eslint-disable-next-line consistent-return
         return null;

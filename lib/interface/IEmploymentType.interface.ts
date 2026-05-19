@@ -1,4 +1,4 @@
-export interface IDepartment {
+export interface IEmploymentType {
   id: string;
   createdAt: string;
   updatedAt: string;
@@ -6,5 +6,4 @@ export interface IDepartment {
   deleted_at: string | null;
   name: string;
   description: string;
-  code: string | null;
 }

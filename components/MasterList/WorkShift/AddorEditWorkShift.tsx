@@ -2,8 +2,7 @@ import Button from '@/components/Button/Button';
 import { FormikField } from '@/components/FormikField/FormikField';
 import { ActionType } from '@/components/types';
 import { IThemes } from '@/lib/interface/IThemes.interface';
-// import { ThemeService } from '@/lib/service';
-import { btnName } from '@/lib/utils';
+import { WorkShiftService } from '@/lib/service';import { btnName } from '@/lib/utils';
 import { Formik, FormikHelpers } from 'formik';
 import { useRouter } from 'next/navigation';
 import { Col, Row, Stack } from 'react-bootstrap';
@@ -32,9 +31,9 @@ export default function AddorEditModules({
   const initialValues = {
     name: currentModule?.name ?? '',
     description: currentModule?.description ?? '',
-    start_time: '',
-    end_time: '',
-    working_hours: '' as number | '',
+    start_time: (currentModule as any)?.start_time_24hr ?? (currentModule as any)?.start_time ?? '',
+    end_time: (currentModule as any)?.end_time_24hr ?? (currentModule as any)?.end_time ?? '',
+    working_hours: (currentModule as any)?.working_hours ?? '' as number | '',
     id: currentModule?.id ?? '',
   };
 
@@ -66,18 +65,14 @@ export default function AddorEditModules({
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toastAndCloseModal = (res: any) => {
-    const { success, error } = res?.data as {
-      success: boolean;
-      error: string[];
-    };
-    if (success) {
+    if (res?.status === 200 || res?.status === 201 || res?.data?.success) {
       toast.success(toastMessage());
       onClose?.();
       router.refresh();
     } else {
-      toast.error(error[0]);
+      const err = res?.data?.error || res?.data?.message || 'Something went wrong';
+      toast.error(Array.isArray(err) ? err[0] : err);
     }
   };
 
@@ -96,14 +91,14 @@ export default function AddorEditModules({
     };
 
     switch (actionType) {
-      // case 'Create':
-      //   res = await ThemeService.create(params);
-      //   toastAndCloseModal(res);
-      //   return;
-      // case 'Edit':
-      //   res = await ThemeService.update(params, values?.id || '');
-      //   toastAndCloseModal(res);
-      //   return;
+      case 'Create':
+        res = await WorkShiftService.create(params);
+        toastAndCloseModal(res);
+        return;
+      case 'Edit':
+        res = await WorkShiftService.update(params, values?.id || '');
+        toastAndCloseModal(res);
+        return;
       default:
         // eslint-disable-next-line consistent-return
         return null;

@@ -1,8 +1,10 @@
+'use client';
+
 import Button from '@/components/Button/Button';
 import { FormikField } from '@/components/FormikField/FormikField';
 import { ActionType } from '@/components/types';
-import { IThemes } from '@/lib/interface/IThemes.interface';
-import { ThemeService } from '@/lib/service';
+import { IIndustry } from '@/lib/interface/IIndustry.interface';
+import { IndustryService } from '@/lib/service';
 import { btnName } from '@/lib/utils';
 import { Formik, FormikHelpers } from 'formik';
 import { useRouter } from 'next/navigation';
@@ -11,86 +13,73 @@ import toast from 'react-hot-toast';
 import { object, string } from 'yup';
 
 interface IFields {
-  theme_name: string;
-  theme_description: string;
+  name: string;
+  sector: string;
+  description: string;
   id: string;
 }
 
-export default function AddorEditDepartments({
+export default function AddorEditIndustry({
   actionType,
   onClose,
   currentModule,
 }: {
   actionType: ActionType;
   onClose?: () => void;
-  currentModule?: IThemes | undefined;
+  currentModule?: IIndustry | undefined;
 }) {
   const router = useRouter();
-  const initialValues = {
-    theme_name: currentModule?.name ?? '',
-    theme_description: currentModule?.description ?? '',
+
+  const initialValues: IFields = {
+    name: currentModule?.name ?? '',
+    sector: currentModule?.sector ?? '',
+    description: currentModule?.description ?? '',
     id: currentModule?.id ?? '',
   };
 
   const validationSchema = object({
-    theme_name: string()
-      .max(150, 'Industry Name must be between 3 and 150 characters')
-      .min(3, 'Industry Name must be between 3 and 150 characters')
+    name: string()
+      .min(3, 'Industry Name must be at least 3 characters')
+      .max(150, 'Industry Name must be at most 150 characters')
       .required('Industry Name is required'),
-    theme_description: string()
-      .max(5000, 'Industry description must be between 3 and 5000 characters')
-      .min(3, 'Industry description must be between 3 and 5000 characters')
-      .notRequired(),
+    sector: string()
+      .min(2, 'Sector must be at least 2 characters')
+      .required('Sector is required'),
+    description: string().notRequired(),
   });
 
-  const toastMessage = () => {
-    switch (actionType) {
-      case 'Create':
-        return 'Created Industry!';
-      case 'Edit':
-        return 'Updated Industry!';
-      default:
-        return '';
-    }
-  };
+  const toastMessage = () => (actionType === 'Create' ? 'Industry Created!' : 'Industry Updated!');
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toastAndCloseModal = (res: any) => {
-    const { success, error } = res?.data as {
-      success: boolean;
-      error: string[];
-    };
-    if (success) {
+    if (res?.status === 200 || res?.status === 201 || res?.data?.success) {
       toast.success(toastMessage());
       onClose?.();
       router.refresh();
     } else {
-      toast.error(error[0]);
+      const err = res?.data?.error || res?.data?.message || 'Something went wrong';
+      toast.error(Array.isArray(err) ? err[0] : err);
     }
   };
 
-  const onSubmit = async (
-    values: IFields,
-    { validateForm }: FormikHelpers<IFields>,
-  ) => {
+  const onSubmit = async (values: IFields, { validateForm }: FormikHelpers<IFields>) => {
     await validateForm(values);
-    let res;
     const params = {
-      name: values.theme_name,
-      description: values.theme_description,
+      name: values.name,
+      sector: values.sector,
+      description: values.description,
     };
-
+    let res;
     switch (actionType) {
       case 'Create':
-        res = await ThemeService.create(params);
+        res = await IndustryService.create(params);
         toastAndCloseModal(res);
         return;
       case 'Edit':
-        res = await ThemeService.update(params, values?.id || '');
+        res = await IndustryService.update(params, values.id);
         toastAndCloseModal(res);
         return;
       default:
-        // eslint-disable-next-line consistent-return
         return null;
     }
   };
@@ -103,20 +92,30 @@ export default function AddorEditDepartments({
       onSubmit={onSubmit}
       validateOnChange={false}
     >
-      {({
-        errors, handleSubmit, isSubmitting, resetForm,
-      }) => (
+      {({ errors, handleSubmit, isSubmitting, resetForm }) => (
         <form onSubmit={handleSubmit}>
           <Row>
             <Col className="mt-3">
               <FormikField
-                name="industry_name"
+                name="name"
                 type="text"
                 validationSchema={validationSchema}
                 label="Industry Name"
                 errors={errors as Record<string, string>}
                 autoFocus
-                placeholder="Industry Name"
+                placeholder="e.g. Information Technology"
+              />
+            </Col>
+          </Row>
+          <Row>
+            <Col className="mt-3">
+              <FormikField
+                name="sector"
+                type="text"
+                validationSchema={validationSchema}
+                label="Sector"
+                errors={errors as Record<string, string>}
+                placeholder="e.g. Technology"
               />
             </Col>
           </Row>
@@ -124,23 +123,19 @@ export default function AddorEditDepartments({
             <Col className="mt-3">
               <FormikField
                 as="textarea"
-                name="industry_description"
+                name="description"
                 type="text"
                 validationSchema={validationSchema}
                 label="Description"
                 errors={errors as Record<string, string>}
-                autoFocus
-                placeholder="Enter your Description"
+                placeholder="Enter Description"
               />
             </Col>
           </Row>
-          <Stack direction="horizontal" className="justify-content-end ">
+          <Stack direction="horizontal" className="justify-content-end">
             <Button
               className="my-4 py-2 btn-sm px-sm-4 Cancelbtn me-3"
-              onClick={() => {
-                onClose?.();
-                resetForm();
-              }}
+              onClick={() => { onClose?.(); resetForm(); }}
             >
               Cancel
             </Button>

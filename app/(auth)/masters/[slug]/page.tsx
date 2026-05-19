@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-unused-vars */
 
+import Badge from '@/components/Badge/Badge';
 import Filter from '@/components/Filter/Filter';
 import InviteButton from '@/components/InviteButton/InviteButton';
 import MasterFilter from '@/components/MasterList/MasterFilter/MasterFilter';
@@ -30,9 +29,22 @@ import Search from '@/components/Search/Search';
 import Sort from '@/components/Sort/Sort';
 import SubNav from '@/components/SubNav/SubNav';
 import { auth } from '@/lib/auth';
+import { IDepartment } from '@/lib/interface/IDepartment.interface';
+import { IEmploymentType } from '@/lib/interface/IEmploymentType.interface';
+import { ILeaveType } from '@/lib/interface/ILeaveType.interface';
+import { IWorkShift } from '@/lib/interface/IWorkShift.interface';
+import { IWorkSchedule } from '@/lib/interface/IWorkSchedule.interface';
 import { IMeta } from '@/lib/interface/IMeta.interface';
-import { unstable_noStore as noStore } from 'next/cache';
-import { convertToPascalCase, Params } from '@/lib/utils';
+import {
+  DepartmentService,
+  EmploymentTypeService,
+  IndustryService,
+  LeaveTypeService,
+  WorkShiftService,
+  WorkScheduleService,
+} from '@/lib/service';
+import { convertToPascalCase, formatDateList, getStatusColor, Params } from '@/lib/utils';
+import { IIndustry } from '@/lib/interface/IIndustry.interface';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,67 +55,253 @@ export default async function Page({
   params: { slug: string };
   searchParams: any;
 }) {
-  noStore();
+  const session = await auth();
+  const token = (session?.user as { accessToken: string })?.accessToken;
 
   const filterParams = {
     page: searchParams?.page || '1',
-    limit: searchParams?.limit || '50',
+    limit: searchParams?.limit || '100',
     search: searchParams?.search || '',
     status: searchParams?.status || '',
     sort: searchParams?.sort || '-createdAt',
   };
 
-  const metaList: IMeta = {
+  let metaList: IMeta = {
     currentCount: 0,
     currentPage: '1',
-    currentLimit: '50',
+    currentLimit: '100',
     totalCount: 0,
   };
 
-  function RenderComponents() {
+  async function RenderComponents() {
     switch (params?.slug) {
-      case 'industry':
+      case 'industry': {
+        const res = await IndustryService.getAll(filterParams, token);
+        const industries = (res?.data?.data || []) as IIndustry[];
+        const meta = res?.data?.meta;
+        if (meta) metaList = {
+          totalCount: meta.totalCount ?? 0,
+          currentCount: meta.currentCount ?? 0,
+          currentPage: String(meta.currentPage ?? 1),
+          currentLimit: String(meta.limit ?? meta.currentLimit ?? 100),
+        };
         return (
           <>
-            <IndustryWrapper>{null}</IndustryWrapper>
-            <IndustryList industries={[]} />
+            <IndustryWrapper>
+              {industries.map((item) => (
+                <tr key={item.id} className="tableHover">
+                  <td style={{ textTransform: 'capitalize' }}>{item.name}</td>
+                  <td>{item.sector || '-'}</td>
+                  <td>{item.description || '-'}</td>
+                  <td>{formatDateList(item.updatedAt)}</td>
+                  <td>
+                    <Badge
+                      bg={getStatusColor(item.is_deleted ? 'DELETED' : 'ACTIVE', true)}
+                      className={getStatusColor(item.is_deleted ? 'DELETED' : 'ACTIVE', false)}
+                    >
+                      {item.is_deleted ? 'Deleted' : 'Active'}
+                    </Badge>
+                  </td>
+                  <td className="text-center">
+                    <IndustryActionDropDown theme={item} />
+                  </td>
+                </tr>
+              ))}
+            </IndustryWrapper>
+            <IndustryList industries={industries} />
           </>
         );
-      case 'departments':
+      }
+      case 'departments': {
+        const res = await DepartmentService.getAll(filterParams, token);
+        const departments = (res?.data?.data || []) as IDepartment[];
+        const meta = res?.data?.meta;
+        if (meta) metaList = {
+          totalCount: meta.totalCount ?? 0,
+          currentCount: meta.currentCount ?? 0,
+          currentPage: String(meta.currentPage ?? 1),
+          currentLimit: String(meta.limit ?? meta.currentLimit ?? 100),
+        };
         return (
           <>
-            <DepartmentWrapper>{null}</DepartmentWrapper>
-            <DepartmentList modules={[]} />
+            <DepartmentWrapper>
+              {departments.map((item) => (
+                <tr key={item.id} className="tableHover">
+                  <td style={{ textTransform: 'capitalize' }}>{item.name}</td>
+                  <td>{formatDateList(item.updatedAt)}</td>
+                  <td>
+                    <Badge
+                      bg={getStatusColor(item.is_deleted ? 'DELETED' : 'ACTIVE', true)}
+                      className={getStatusColor(item.is_deleted ? 'DELETED' : 'ACTIVE', false)}
+                    >
+                      {item.is_deleted ? 'Deleted' : 'Active'}
+                    </Badge>
+                  </td>
+                  <td className="text-center">
+                    <DepartmentActionDropDown theme={item as any} />
+                  </td>
+                </tr>
+              ))}
+            </DepartmentWrapper>
+            <DepartmentList modules={departments as any} />
           </>
         );
-      case 'employee_type':
+      }
+      case 'employee_type': {
+        const res = await EmploymentTypeService.getAll(filterParams, token);
+        const employmentTypes = (res?.data?.data || []) as IEmploymentType[];
+        const meta = res?.data?.meta;
+        if (meta) metaList = {
+          totalCount: meta.totalCount ?? 0,
+          currentCount: meta.currentCount ?? 0,
+          currentPage: String(meta.currentPage ?? 1),
+          currentLimit: String(meta.limit ?? meta.currentLimit ?? 100),
+        };
         return (
           <>
-            <EmployeeTypeWrapper>{null}</EmployeeTypeWrapper>
-            <EmployeeTypeList modules={[]} />
+            <EmployeeTypeWrapper>
+              {employmentTypes.map((item) => (
+                <tr key={item.id} className="tableHover">
+                  <td style={{ textTransform: 'capitalize' }}>{item.name}</td>
+                  <td>{item.description || '-'}</td>
+                  <td>{formatDateList(item.updatedAt)}</td>
+                  <td>
+                    <Badge
+                      bg={getStatusColor(item.is_deleted ? 'DELETED' : 'ACTIVE', true)}
+                      className={getStatusColor(item.is_deleted ? 'DELETED' : 'ACTIVE', false)}
+                    >
+                      {item.is_deleted ? 'Deleted' : 'Active'}
+                    </Badge>
+                  </td>
+                  <td className="text-center">
+                    <EmployeeTypeActionDropDown theme={item as any} />
+                  </td>
+                </tr>
+              ))}
+            </EmployeeTypeWrapper>
+            <EmployeeTypeList modules={employmentTypes as any} />
           </>
         );
-      case 'leave_type':
+      }
+      case 'leave_type': {
+        const res = await LeaveTypeService.getAll(undefined, token);
+        const leaveTypes = (Array.isArray(res?.data) ? res.data : res?.data?.data || []) as ILeaveType[];
+        metaList = {
+          totalCount: leaveTypes.length,
+          currentCount: leaveTypes.length,
+          currentPage: '1',
+          currentLimit: String(leaveTypes.length || 100),
+        };
         return (
           <>
-            <LeaveTypeWrapper>{null}</LeaveTypeWrapper>
-            <LeaveTypeList modules={[]} />
+            <LeaveTypeWrapper>
+              {leaveTypes.map((item) => (
+                <tr key={item.id} className="tableHover">
+                  <td style={{ textTransform: 'capitalize' }}>{item.name}</td>
+                  <td style={{ textTransform: 'capitalize' }}>{item.applicable_gender || 'All'}</td>
+                  <td>
+                    <Badge bg={item.is_paid ? 'success' : 'secondary'} className="">
+                      {item.is_paid ? 'Paid' : 'Unpaid'}
+                    </Badge>
+                  </td>
+                  <td>{item.max_consecutive_days ?? '-'}</td>
+                  <td>
+                    <Badge
+                      bg={getStatusColor(item.is_active ? 'ACTIVE' : 'DELETED', true)}
+                      className={getStatusColor(item.is_active ? 'ACTIVE' : 'DELETED', false)}
+                    >
+                      {item.is_active ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </td>
+                  <td className="text-center">
+                    <LeaveTypeActionDropDown theme={item as any} />
+                  </td>
+                </tr>
+              ))}
+            </LeaveTypeWrapper>
+            <LeaveTypeList modules={leaveTypes as any} />
           </>
         );
-      case 'work_shift':
+      }
+      case 'work_shift': {
+        const res = await WorkShiftService.getAll(filterParams, token);
+        const shifts = (res?.data?.data || []) as IWorkShift[];
+        const meta = res?.data?.meta;
+        if (meta) metaList = {
+          totalCount: meta.totalCount ?? 0,
+          currentCount: meta.currentCount ?? 0,
+          currentPage: String(meta.currentPage ?? 1),
+          currentLimit: String(meta.limit ?? meta.currentLimit ?? 100),
+        };
         return (
           <>
-            <WorkShiftWrapper>{null}</WorkShiftWrapper>
-            <WorkShiftList modules={[]} />
+            <WorkShiftWrapper>
+              {shifts.map((item) => (
+                <tr key={item.id} className="tableHover">
+                  <td style={{ textTransform: 'capitalize' }}>{item.name}</td>
+                  <td>{item.start_time_24hr || item.start_time}</td>
+                  <td>{item.end_time_24hr || item.end_time}</td>
+                  <td>{item.working_hours} hrs</td>
+                  <td>
+                    <Badge
+                      bg={getStatusColor(item.is_deleted ? 'DELETED' : 'ACTIVE', true)}
+                      className={getStatusColor(item.is_deleted ? 'DELETED' : 'ACTIVE', false)}
+                    >
+                      {item.is_deleted ? 'Deleted' : 'Active'}
+                    </Badge>
+                  </td>
+                  <td className="text-center">
+                    <WorkShiftActionDropDown theme={item as any} />
+                  </td>
+                </tr>
+              ))}
+            </WorkShiftWrapper>
+            <WorkShiftList modules={shifts as any} />
           </>
         );
-      case 'work_schedule':
+      }
+      case 'work_schedule': {
+        const res = await WorkScheduleService.getAll(undefined, token);
+        const schedules = (Array.isArray(res?.data) ? res.data : res?.data?.data || []) as IWorkSchedule[];
+        metaList = {
+          totalCount: schedules.length,
+          currentCount: schedules.length,
+          currentPage: '1',
+          currentLimit: String(schedules.length || 100),
+        };
         return (
           <>
-            <WorkScheduleWrapper>{null}</WorkScheduleWrapper>
-            <WorkScheduleList modules={[]} />
+            <WorkScheduleWrapper>
+              {schedules.map((item) => {
+                const workingDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday_week_1', 'sunday']
+                  .filter((d) => item[d as keyof IWorkSchedule])
+                  .map((d) => d.charAt(0).toUpperCase() + d.slice(1, 3))
+                  .join(', ');
+                return (
+                  <tr key={item.id} className="tableHover">
+                    <td style={{ textTransform: 'capitalize' }}>{item.name}</td>
+                    <td>{workingDays || '-'}</td>
+                    <td>{item.description || '-'}</td>
+                    <td>{formatDateList(item.updated_at)}</td>
+                    <td>
+                      <Badge
+                        bg={getStatusColor(item.is_deleted ? 'DELETED' : 'ACTIVE', true)}
+                        className={getStatusColor(item.is_deleted ? 'DELETED' : 'ACTIVE', false)}
+                      >
+                        {item.is_deleted ? 'Deleted' : 'Active'}
+                      </Badge>
+                    </td>
+                    <td className="text-center">
+                      <WorkScheduleActionDropDown theme={item as any} />
+                    </td>
+                  </tr>
+                );
+              })}
+            </WorkScheduleWrapper>
+            <WorkScheduleList modules={schedules as any} />
           </>
         );
+      }
       default:
         return <PageNotFound />;
     }
@@ -139,7 +337,7 @@ export default async function Page({
         <div className="common-mobile-searchsection mb-3">
           <Search params={params as Params} />
         </div>
-        {RenderComponents()}
+        {await RenderComponents()}
         <div className="my-4 pagination_padding">
           <Pagination
             meta={metaList}

@@ -2,8 +2,7 @@ import Button from '@/components/Button/Button';
 import { FormikField } from '@/components/FormikField/FormikField';
 import { ActionType } from '@/components/types';
 import { IThemes } from '@/lib/interface/IThemes.interface';
-// import { ThemeService } from '@/lib/service'
-import { btnName } from '@/lib/utils';
+import { EmploymentTypeService } from '@/lib/service';import { btnName } from '@/lib/utils';
 import { Formik, FormikHelpers } from 'formik';
 import { useRouter } from 'next/navigation';
 import { Col, Row, Stack } from 'react-bootstrap';
@@ -54,18 +53,14 @@ export default function AddorEditEmployeeType({
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toastAndCloseModal = (res: any) => {
-    const { success, error } = res?.data as {
-      success: boolean;
-      error: string[];
-    };
-    if (success) {
+    if (res?.status === 200 || res?.status === 201 || res?.data?.success) {
       toast.success(toastMessage());
       onClose?.();
       router.refresh();
     } else {
-      toast.error(error[0]);
+      const err = res?.data?.error || res?.data?.message || 'Something went wrong';
+      toast.error(Array.isArray(err) ? err[0] : err);
     }
   };
 
@@ -81,14 +76,14 @@ export default function AddorEditEmployeeType({
     };
 
     switch (actionType) {
-      // case 'Create':
-      //   res = await ThemeService.create(params);
-      //   toastAndCloseModal(res);
-      //   return;
-      // case 'Edit':
-      //   res = await ThemeService.update(params, values?.id || '');
-      //   toastAndCloseModal(res);
-      //   return;
+      case 'Create':
+        res = await EmploymentTypeService.create({ name: values.employment_type, description: values.description });
+        toastAndCloseModal(res);
+        return;
+      case 'Edit':
+        res = await EmploymentTypeService.update({ name: values.employment_type, description: values.description }, values?.id || '');
+        toastAndCloseModal(res);
+        return;
       default:
         // eslint-disable-next-line consistent-return
         return null;

@@ -2,8 +2,7 @@ import Button from '@/components/Button/Button';
 import { FormikField } from '@/components/FormikField/FormikField';
 import { ActionType } from '@/components/types';
 import { IThemes } from '@/lib/interface/IThemes.interface';
-// import { WorkScheduleService } from '@/lib/service';
-import { btnName } from '@/lib/utils';
+import { WorkScheduleService } from '@/lib/service';import { btnName } from '@/lib/utils';
 import { Field, Formik, FormikHelpers } from 'formik';
 import { useRouter } from 'next/navigation';
 import { Col, Form, Row, Stack } from 'react-bootstrap';
@@ -58,17 +57,17 @@ export default function AddorEditWorkSchedule({
   const initialValues: IFields = {
     name: currentModule?.name ?? '',
     description: currentModule?.description ?? '',
-    monday: false,
-    tuesday: false,
-    wednesday: false,
-    thursday: false,
-    friday: false,
-    saturday_week_1: false,
-    saturday_week_2: false,
-    saturday_week_3: false,
-    saturday_week_4: false,
-    saturday_week_5: false,
-    sunday: false,
+    monday: (currentModule as any)?.monday ?? false,
+    tuesday: (currentModule as any)?.tuesday ?? false,
+    wednesday: (currentModule as any)?.wednesday ?? false,
+    thursday: (currentModule as any)?.thursday ?? false,
+    friday: (currentModule as any)?.friday ?? false,
+    saturday_week_1: (currentModule as any)?.saturday_week_1 ?? false,
+    saturday_week_2: (currentModule as any)?.saturday_week_2 ?? false,
+    saturday_week_3: (currentModule as any)?.saturday_week_3 ?? false,
+    saturday_week_4: (currentModule as any)?.saturday_week_4 ?? false,
+    saturday_week_5: (currentModule as any)?.saturday_week_5 ?? false,
+    sunday: (currentModule as any)?.sunday ?? false,
     id: currentModule?.id ?? '',
   };
 
@@ -105,18 +104,14 @@ export default function AddorEditWorkSchedule({
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toastAndCloseModal = (res: any) => {
-    const { success, error } = res?.data as {
-      success: boolean;
-      error: string[];
-    };
-    if (success) {
+    if (res?.status === 200 || res?.status === 201 || res?.data?.success) {
       toast.success(toastMessage());
       onClose?.();
       router.refresh();
     } else {
-      toast.error(error[0]);
+      const err = res?.data?.error || res?.data?.message || 'Something went wrong';
+      toast.error(Array.isArray(err) ? err[0] : err);
     }
   };
 
@@ -143,14 +138,14 @@ export default function AddorEditWorkSchedule({
     };
 
     switch (actionType) {
-      // case 'Create':
-      //   res = await WorkScheduleService.create(params);
-      //   toastAndCloseModal(res);
-      //   return;
-      // case 'Edit':
-      //   res = await WorkScheduleService.update(params, values?.id || '');
-      //   toastAndCloseModal(res);
-      //   return;
+      case 'Create':
+        res = await WorkScheduleService.create(params);
+        toastAndCloseModal(res);
+        return;
+      case 'Edit':
+        res = await WorkScheduleService.update(params, values?.id || '');
+        toastAndCloseModal(res);
+        return;
       default:
         // eslint-disable-next-line consistent-return
         return null;

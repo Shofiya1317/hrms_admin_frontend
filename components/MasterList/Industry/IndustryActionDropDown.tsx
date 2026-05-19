@@ -4,100 +4,76 @@ import BlockOrUnblockOrDelete from '@/components/BlockOrUnblockOrDelete/BlockOrU
 import Dropdown from '@/components/Dropdown/DropDown';
 import { useModal } from '@/components/Modal/Context';
 import { ActionType } from '@/components/types';
-import { IThemes } from '@/lib/interface/IThemes.interface';
+import { IIndustry } from '@/lib/interface/IIndustry.interface';
 import { IndustryService } from '@/lib/service';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import AddorEditIndustry from './AddorEditIndustry';
 
-export default function IndustryActionDropDown({
-  theme,
-}: {
-  theme?: IThemes;
-}) {
+export default function IndustryActionDropDown({ theme }: { theme?: IIndustry }) {
   const router = useRouter();
   const [actionType, setActionType] = useState<ActionType>(null);
-  const [currentTheme, setCurrentTheme] = useState<IThemes>();
+  const [current, setCurrent] = useState<IIndustry>();
 
   const hideModal = useModal({});
-  const closeMoal = () => {
+  const closeModal = () => {
     hideModal();
     setActionType(null);
-    setCurrentTheme(undefined);
+    setCurrent(undefined);
   };
+
   const modal = useModal({
-    style: {
-      size: 'sm',
-      title: `${actionType} Module`,
-    },
+    style: { size: 'sm', title: `${actionType} Industry` },
     content: (
       <AddorEditIndustry
         actionType={actionType}
-        onClose={closeMoal}
-        currentModule={currentTheme}
+        onClose={closeModal}
+        currentModule={current}
       />
     ),
   });
 
   const handleConfirm = async () => {
-    if (!currentTheme || !currentTheme.id) {
-      return;
-    }
-    let response;
-    if (actionType === 'Delete') {
-      response = await IndustryService.deleteindustry(currentTheme.id);
-    }
-    const { success, error } = response?.data as {
-      success: boolean;
-      error: string[];
-    };
-
-    if (success) {
-      toast.success(`Module ${actionType}`);
+    if (!current?.id) return;
+    const response = await IndustryService.deleteIndustry(current.id);
+    if (response?.status === 200 || response?.status === 201 || response?.data?.success) {
+      toast.success('Industry Deleted');
       hideModal();
-      setCurrentTheme(undefined);
+      setCurrent(undefined);
       setActionType(null);
       router.refresh();
     } else {
-      toast.error(error[0]);
+      const err = response?.data?.error || response?.data?.message || 'Something went wrong';
+      toast.error(Array.isArray(err) ? err[0] : err);
     }
   };
 
-  const deleteOrActive = useModal({
-    style: {
-      size: 'sm',
-      title: `${actionType} Module`,
-    },
+  const deleteModal = useModal({
+    style: { size: 'sm', title: 'Delete Industry' },
     content: (
       <BlockOrUnblockOrDelete
         actionType={actionType}
         onConfirm={handleConfirm}
-        onClose={closeMoal}
-        deleteText={`Are you sure you want to ${actionType?.toLocaleLowerCase()} this Module ?`}
+        onClose={closeModal}
+        deleteText="Are you sure you want to delete this Industry?"
       />
     ),
   });
 
   useEffect(() => {
-    if (!currentTheme && actionType === 'Invite') {
-      modal();
-    }
     switch (actionType) {
       case 'Edit':
         modal();
         break;
-      case 'DeleteIndustry':
-        break;
-      case 'Activate':
       case 'Delete':
-        deleteOrActive();
+        deleteModal();
         break;
       default:
         break;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTheme, actionType]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current, actionType]);
 
   return (
     <Dropdown>
@@ -105,20 +81,14 @@ export default function IndustryActionDropDown({
         <li
           aria-hidden
           className="dropdown_item px-4"
-          onClick={() => {
-            setActionType('Edit');
-            setCurrentTheme(theme);
-          }}
+          onClick={() => { setActionType('Edit'); setCurrent(theme); }}
         >
           Edit
         </li>
         <li
           aria-hidden
           className="dropdown_item px-4"
-          onClick={() => {
-            setActionType('Delete');
-            setCurrentTheme(theme);
-          }}
+          onClick={() => { setActionType('Delete'); setCurrent(theme); }}
         >
           Delete
         </li>

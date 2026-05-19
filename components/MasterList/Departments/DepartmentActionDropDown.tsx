@@ -5,7 +5,7 @@ import Dropdown from '@/components/Dropdown/DropDown';
 import { useModal } from '@/components/Modal/Context';
 import { ActionType } from '@/components/types';
 import { IThemes } from '@/lib/interface/IThemes.interface';
-import { ThemeService } from '@/lib/service';
+import { DepartmentService } from '@/lib/service';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -41,26 +41,17 @@ export default function DepartmentActionDropDown({
   });
 
   const handleConfirm = async () => {
-    if (!currentTheme || !currentTheme.id) {
-      return;
-    }
-    let response;
-    if (actionType === 'Delete') {
-      response = await ThemeService.deletemodule(currentTheme.id);
-    }
-    const { success, error } = response?.data as {
-      success: boolean;
-      error: string[];
-    };
-
-    if (success) {
-      toast.success(`Module ${actionType}`);
+    if (!currentTheme || !currentTheme.id) return;
+    const response = await DepartmentService.deleteDepartments(currentTheme.id);
+    if (response?.status === 200 || response?.status === 201 || response?.data?.success) {
+      toast.success('Department Deleted');
       hideModal();
       setCurrentTheme(undefined);
       setActionType(null);
       router.refresh();
     } else {
-      toast.error(error[0]);
+      const err = response?.data?.error || response?.data?.message || 'Something went wrong';
+      toast.error(Array.isArray(err) ? err[0] : err);
     }
   };
 
